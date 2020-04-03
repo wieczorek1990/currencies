@@ -9,8 +9,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    var tables = ["A", "B", "C"]
+    @State private var selectedTable : Int = 0;
     var body: some View {
-        Text("Hello, World!")
+        VStack(alignment: .leading, spacing: nil, content: {
+            Picker(selection: $selectedTable, label: Text("Table")) {
+                ForEach(0 ..< tables.count) {
+                    Text(self.tables[$0])
+                }
+            }
+        })
     }
 }
 
