@@ -8,50 +8,41 @@
 
 import SwiftUI
 
-struct Currency: Comparable {
-    static func < (lhs: Currency, rhs: Currency) -> Bool {
-        return lhs.mid < rhs.mid
-    }
-    
-    let date: String;
-    let name: String;
-    let code: String;
-    let mid: String;
+struct Currency {
+    let name: String
+    let code: String
+    let mid: String
 }
 
-let currenciesData = [
-    [
-        "date": "2020-04-01",
-        "name": "dolar amerykański",
-        "code": "USD",
-        "mid": "3.82"
-    ],
-    [
-        "date": "2020-04-01",
-        "name": "euro",
-        "code": "EUR",
-        "mid": "4.82"
-    ]
-]
+struct Table {
+    let table: String
+    let no: String
+    let effectiveDate: String
+    let rates: Array<Currency>
+}
 
-let currenciesDataStruct = [
-    Currency(date: currenciesData[0]["date"]!,
-             name: currenciesData[0]["name"]!,
-             code: currenciesData[0]["code"]!,
-             mid: currenciesData[0]["mid"]!),
-    Currency(date: currenciesData[1]["date"]!,
-             name: currenciesData[1]["name"]!,
-             code: currenciesData[1]["code"]!,
-             mid: currenciesData[1]["mid"]!),
-]
+let table = Table(
+    table: "A",
+    no: "066/A/NBP/2020",
+    effectiveDate: "2020-04-03",
+    rates: [
+        Currency(name: "dolar amerykański",
+                 code: "USD",
+                 mid: "3.82"),
+        Currency(name: "euro",
+                 code: "EUR",
+                 mid: "4.82"),
+    ])
 
 struct TableRow: View {
+    var table: Table
     var currency: Currency
-    init(currency: Currency) {
+    init(table: Table, currency: Currency) {
+        self.table = table
         self.currency = currency
     }
     func content() -> String {
-        return self.currency.date + "; " + self.currency.name + "; " + self.currency.code + "; " + self.currency.mid
+        return self.table.effectiveDate + "; " + self.currency.name + "; " + self.currency.code + "; " + self.currency.mid
     }
     var body: some View {
         Text(self.content())
@@ -62,14 +53,14 @@ struct TableView: View {
     func unpack(data: [Currency]) -> [TableRow] {
         var result = [TableRow]()
         for row in data {
-            result.append(TableRow(currency: row))
+            result.append(TableRow(table:table, currency: row))
         }
         return result
     }
     var body: some View {
         VStack(alignment: .leading, spacing: nil) {
-            List(currenciesDataStruct, id: \.code) { currency in
-                TableRow(currency: currency)
+            List(table.rates, id: \.code) { currency in
+                TableRow(table: table, currency: currency)
             }
         }
     }
