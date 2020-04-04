@@ -8,7 +8,11 @@
 
 import SwiftUI
 
-struct Currency {
+struct Currency: Comparable {
+    static func < (lhs: Currency, rhs: Currency) -> Bool {
+        return lhs.mid < rhs.mid
+    }
+    
     let date: String;
     let name: String;
     let code: String;
@@ -55,10 +59,18 @@ struct TableRow: View {
 }
 
 struct TableView: View {
+    func unpack(data: [Currency]) -> [TableRow] {
+        var result = [TableRow]()
+        for row in data {
+            result.append(TableRow(currency: row))
+        }
+        return result
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: nil) {
-            TableRow(currency: currenciesDataStruct[0])
-            TableRow(currency: currenciesDataStruct[1])
+            List(currenciesDataStruct, id: \.code) { currency in
+                TableRow(currency: currency)
+            }
         }
     }
 }
