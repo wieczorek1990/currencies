@@ -8,30 +8,43 @@
 
 import SwiftUI
 
-struct Currency {
-    let name: String
+struct Currency: Codable {
+    let currency: String
     let code: String
-    let mid: String
+    let mid: Float?
+    let bid: Float?
+    let ask: Float?
+    func middle() -> Float {
+        if (mid == nil) {
+            return (self.bid! + self.ask!) / 2
+        }
+        return mid!
+    }
 }
 
-struct Table {
+struct Table: Codable {
     let table: String
     let no: String
     let effectiveDate: String
     let rates: Array<Currency>
 }
 
-let table = Table(
+var tables = ["A", "B", "C"]
+var table = Table(
     table: "A",
     no: "066/A/NBP/2020",
     effectiveDate: "2020-04-03",
     rates: [
-        Currency(name: "dolar amerykański",
+        Currency(currency: "dolar amerykański",
                  code: "USD",
-                 mid: "3.82"),
-        Currency(name: "euro",
+                 mid: 4.2396,
+                 bid: nil,
+                 ask: nil),
+        Currency(currency: "euro",
                  code: "EUR",
-                 mid: "4.82"),
+                 mid: 4.5792,
+                 bid: nil,
+                 ask: nil),
     ])
 
 struct TableRow: View {
@@ -42,7 +55,7 @@ struct TableRow: View {
         self.currency = currency
     }
     func content() -> String {
-        return self.table.effectiveDate + "; " + self.currency.name + "; " + self.currency.code + "; " + self.currency.mid
+        return self.table.effectiveDate + "; " + self.currency.currency + "; " + self.currency.code + "; " + String(format: "%.2f", self.currency.middle())
     }
     var body: some View {
         Text(self.content())
@@ -50,33 +63,53 @@ struct TableRow: View {
 }
 
 struct TableView: View {
+    var table: Table
+    init(table: Table) {
+        self.table = table
+    }
     func unpack(data: [Currency]) -> [TableRow] {
         var result = [TableRow]()
         for row in data {
-            result.append(TableRow(table:table, currency: row))
+            result.append(TableRow(table: self.table, currency: row))
         }
         return result
     }
     var body: some View {
         VStack(alignment: .leading, spacing: nil) {
             List(table.rates, id: \.code) { currency in
-                TableRow(table: table, currency: currency)
+                TableRow(table: self.table, currency: currency)
             }
         }
     }
 }
 
 struct ContentView: View {
-    var tables = ["A", "B", "C"]
-    @State private var selectedTable : Int = 0;
+    @State var selectedTable : Int = 0
     var body: some View {
         VStack(alignment: .leading, spacing: nil, content: {
             Picker(selection: $selectedTable, label: Text("Table")) {
                 ForEach(0 ..< tables.count) {
-                    Text(self.tables[$0])
+                    Text(tables[$0])
                 }
             }
-            TableView()
+            .onReceive([self.selectedTable].publisher.first()) { (value) in
+                let selectedTableValue = tables[value]
+                let url = URL(string: "https://api.nbp.pl/api/exchangerates/tables/\(selectedTableValue)/?format=json")!
+                print("Querying \(url)")
+                let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+                    guard let data = data else { return }
+                    let json = String(data: data, encoding: .utf8)!
+                    do {
+                        let result = try JSONDecoder().decode(Array<Table>.self, from: json.data(using: .utf8)!)
+                        table = result[0]
+                    } catch {
+                        print(error)
+                    }
+                }
+
+                task.resume()
+            }
+            TableView(table: table)
         })
     }
 }
