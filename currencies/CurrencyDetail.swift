@@ -18,8 +18,11 @@ struct CurrencyDetail: View {
     @State var rates = ratesSample
     @State var startDate = Date()
     @State var endDate = Date()
+    @State var shouldAnimate = false
+    var table: Table
     let currency: Currency
-    init(currency: Currency) {
+    init(table: Table, currency: Currency) {
+        self.table = table
         self.currency = currency
     }
     var body: some View {
@@ -31,10 +34,11 @@ struct CurrencyDetail: View {
                 DatePicker(selection: $endDate, in: ...Date(), displayedComponents: .date) {
                     Text("Select an end date")
                 }
+                ActivityIndicator(shouldAnimate: self.$shouldAnimate)
                 Button(action: {
                     let start = formatDate(date: self.startDate)
                     let end = formatDate(date: self.endDate)
-                    let url = URL(string: "https://api.nbp.pl/api/exchangerates/rates/\(table.table)/\(self.currency.code)/\(start)/\(end)/?format=json")!
+                    let url = URL(string: "https://api.nbp.pl/api/exchangerates/rates/\(self.table.table)/\(self.currency.code)/\(start)/\(end)/?format=json")!
                     print("Querying \(url)")
                     let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
                         guard let data = data else { return }
@@ -45,8 +49,10 @@ struct CurrencyDetail: View {
                         } catch {
                             print(error)
                         }
+                        self.shouldAnimate = false
                     }
 
+                    self.shouldAnimate = true
                     task.resume()
                 }) {
                     Text("Get")
@@ -60,6 +66,6 @@ struct CurrencyDetail: View {
 
 struct CurrencyDetail_Previews: PreviewProvider {
     static var previews: some View {
-        CurrencyDetail(currency: dolar)
+        CurrencyDetail(table: tableSample, currency: dolar)
     }
 }

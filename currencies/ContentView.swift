@@ -38,7 +38,7 @@ struct TableView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: nil) {
             List(table.rates, id: \.code) { currency in
-                    NavigationLink(destination: CurrencyDetail(currency: currency)) {
+                NavigationLink(destination: CurrencyDetail(table: self.table, currency: currency)) {
                         TableRow(table: self.table, currency: currency)
                 }
             }
@@ -48,6 +48,11 @@ struct TableView: View {
 
 struct ContentView: View {
     @State var selectedTable : Int = 0
+    @State var shouldAnimate = false
+    @State var table = Table(table: "A",
+                             no: "066/A/NBP/2020",
+                             effectiveDate: "2020-04-03",
+                             rates: [dolar, euro])
     var body: some View {
         NavigationView {
             VStack(alignment: .leading, spacing: nil, content: {
@@ -56,25 +61,49 @@ struct ContentView: View {
                         Text(tables[$0])
                     }
                 }
-                .onReceive([self.selectedTable].publisher.first()) { (value) in
-                    let selectedTableValue = tables[value]
-                    let url = URL(string: "https://api.nbp.pl/api/exchangerates/tables/\(selectedTableValue)/?format=json")!
-                    print("Querying \(url)")
-                    let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
-                        guard let data = data else { return }
-                        let json = String(data: data, encoding: .utf8)!
-                        do {
-                            let result = try JSONDecoder().decode(Array<Table>.self, from: json.data(using: .utf8)!)
-                            table = result[0]
-                        } catch {
-                            print(error)
+                ActivityIndicator(shouldAnimate: self.$shouldAnimate)
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        let selectedTableValue = tables[self.selectedTable]
+                        let url = URL(string: "https://api.nbp.pl/api/exchangerates/tables/\(selectedTableValue)/?format=json")!
+                        print("Querying \(url)")
+                        let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+                            guard let data = data else { return }
+                            let json = String(data: data, encoding: .utf8)!
+                            do {
+                                let result = try JSONDecoder().decode(Array<Table>.self, from: json.data(using: .utf8)!)
+                                self.table = result[0]
+                            } catch {
+                                print(error)
+                            }
+                            self.shouldAnimate = false
                         }
-                    }
 
-                    task.resume()
+                        self.shouldAnimate = true
+                        task.resume()
+                    }) {
+                        Text("Get")
+                    }
+                    Spacer()
                 }
-                TableView(table: table)
+                TableView(table: self.table)
             })
+        }
+    }
+}
+
+struct ActivityIndicator: UIViewRepresentable {
+    @Binding var shouldAnimate: Bool
+    func makeUIView(context: Context) -> UIActivityIndicatorView {
+        return UIActivityIndicatorView()
+    }
+    func updateUIView(_ uiView: UIActivityIndicatorView,
+                      context: Context) {
+        if self.shouldAnimate {
+            uiView.startAnimating()
+        } else {
+            uiView.stopAnimating()
         }
     }
 }

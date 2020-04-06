@@ -17,12 +17,11 @@ var euro = Currency(currency: "euro",
                     mid: 4.5792,
                     bid: nil,
                     ask: nil)
+var tableSample = Table(table: "A",
+                        no: "066/A/NBP/2020",
+                        effectiveDate: "2020-04-03",
+                        rates: [dolar, euro])
 var ratesSample = Rates(table: "A", currency: "dolar amerykański", code: "USD", rates: [
     Rate(no: "066/A/NBP/2020", effectiveDate: "2020-04-03", mid: 4.2396, bid: nil, ask: nil),
     Rate(no: "066/A/NBP/2020", effectiveDate: "2020-04-04", mid: 4.2397, bid: nil, ask: nil)
 ])
-var table = Table(
-    table: "A",
-    no: "066/A/NBP/2020",
-    effectiveDate: "2020-04-03",
-    rates: [dolar, euro])
