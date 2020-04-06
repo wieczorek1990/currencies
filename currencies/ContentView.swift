@@ -8,23 +8,6 @@
 
 import SwiftUI
 
-var tables = ["A", "B", "C"]
-var dolar = Currency(currency: "dolar amerykański",
-                     code: "USD",
-                     mid: 4.2396,
-                     bid: nil,
-                     ask: nil)
-var euro = Currency(currency: "euro",
-                    code: "EUR",
-                    mid: 4.5792,
-                    bid: nil,
-                    ask: nil)
-var table = Table(
-    table: "A",
-    no: "066/A/NBP/2020",
-    effectiveDate: "2020-04-03",
-    rates: [dolar, euro])
-
 struct TableRow: View {
     var table: Table
     var currency: Currency

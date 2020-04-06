@@ -15,10 +15,7 @@ func formatDate(date: Date) -> String {
 }
 
 struct CurrencyDetail: View {
-    @State var rates = Rates(table: "A", currency: "dolar amerykański", code: "USD", rates: [
-        Rate(no: "066/A/NBP/2020", effectiveDate: "2020-04-03", mid: 4.2396, bid: nil, ask: nil),
-        Rate(no: "066/A/NBP/2020", effectiveDate: "2020-04-04", mid: 4.2397, bid: nil, ask: nil)
-    ])
+    @State var rates = ratesSample
     @State var startDate = Date()
     @State var endDate = Date()
     let currency: Currency
