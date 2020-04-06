@@ -8,40 +8,6 @@
 
 import SwiftUI
 
-struct Currency: Codable {
-    let currency: String
-    let code: String
-    let mid: Float?
-    let bid: Float?
-    let ask: Float?
-    func middle() -> Float {
-        if (mid == nil) {
-            return (self.bid! + self.ask!) / 2
-        }
-        return mid!
-    }
-}
-
-struct Table: Codable {
-    let table: String
-    let no: String
-    let effectiveDate: String
-    let rates: Array<Currency>
-}
-
-struct Rate: Codable {
-    let no: String
-    let effectiveDate: String
-    let mid: Float
-}
-
-struct Rates: Codable {
-    let table: String
-    let currency: String
-    let code: String
-    let rates: Array<Rate>
-}
-
 var tables = ["A", "B", "C"]
 var dolar = Currency(currency: "dolar amerykański",
                      code: "USD",
@@ -115,45 +81,22 @@ func refresh(value: Int) {
     task.resume()
 }
 
-//func downloadCurrency(currency: Currency, startDate: Date, endDate: Date) {
-//    let url = URL(string: "https://api.nbp.pl/api/exchangerates/rates/\(currency.code)/\(startDate)/\(endDate)/?format=json")!
-//    print("Querying \(url)")
-//    let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
-//        guard let data = data else { return }
-//        let json = String(data: data, encoding: .utf8)!
-//        do {
-//            let result = try JSONDecoder().decode(Rates.self, from: json.data(using: .utf8)!)
-//            table = result
-//        } catch {
-//            print(error)
-//        }
-//    }
-//
-//    task.resume()
-//}
-
 struct ContentView: View {
     @State var selectedTable : Int = 0
-//    @State var startDate = Date()
-//    @State var endDate = Date()
     var body: some View {
-        VStack(alignment: .leading, spacing: nil, content: {
-            Picker(selection: $selectedTable, label: Text("Table")) {
-                ForEach(0 ..< tables.count) {
-                    Text(tables[$0])
+        NavigationView {
+            VStack(alignment: .leading, spacing: nil, content: {
+                Picker(selection: $selectedTable, label: Text("Table")) {
+                    ForEach(0 ..< tables.count) {
+                        Text(tables[$0])
+                    }
                 }
-            }
-            .onReceive([self.selectedTable].publisher.first()) { (value) in
-                refresh(value: value)
-            }
-//            DatePicker(selection: $startDate, in: ...Date(), displayedComponents: .date) {
-//                Text("Select a start date")
-//            }
-//            DatePicker(selection: $endDate, in: ...Date(), displayedComponents: .date) {
-//                Text("Select an end date")
-//            }
-            TableView(table: table)
-        })
+                .onReceive([self.selectedTable].publisher.first()) { (value) in
+                    refresh(value: value)
+                }
+                TableView(table: table)
+            })
+        }
     }
 }
 
