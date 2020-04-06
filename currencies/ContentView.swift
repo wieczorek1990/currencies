@@ -63,24 +63,6 @@ struct TableView: View {
     }
 }
 
-func refresh(value: Int) {
-    let selectedTableValue = tables[value]
-    let url = URL(string: "https://api.nbp.pl/api/exchangerates/tables/\(selectedTableValue)/?format=json")!
-    print("Querying \(url)")
-    let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
-        guard let data = data else { return }
-        let json = String(data: data, encoding: .utf8)!
-        do {
-            let result = try JSONDecoder().decode(Array<Table>.self, from: json.data(using: .utf8)!)
-            table = result[0]
-        } catch {
-            print(error)
-        }
-    }
-
-    task.resume()
-}
-
 struct ContentView: View {
     @State var selectedTable : Int = 0
     var body: some View {
@@ -92,7 +74,21 @@ struct ContentView: View {
                     }
                 }
                 .onReceive([self.selectedTable].publisher.first()) { (value) in
-                    refresh(value: value)
+                    let selectedTableValue = tables[value]
+                    let url = URL(string: "https://api.nbp.pl/api/exchangerates/tables/\(selectedTableValue)/?format=json")!
+                    print("Querying \(url)")
+                    let task = URLSession.shared.dataTask(with: url) {(data, response, error) in
+                        guard let data = data else { return }
+                        let json = String(data: data, encoding: .utf8)!
+                        do {
+                            let result = try JSONDecoder().decode(Array<Table>.self, from: json.data(using: .utf8)!)
+                            table = result[0]
+                        } catch {
+                            print(error)
+                        }
+                    }
+
+                    task.resume()
                 }
                 TableView(table: table)
             })
